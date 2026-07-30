@@ -28,6 +28,7 @@ class Config:
     downloads_dir: Path
     work_dir: Path
     whisper_model: str
+    whisper_translate_model: str
     web_host: str
     web_port: int
 
@@ -107,6 +108,12 @@ def get_config() -> Config:
         downloads_dir=expand(os.getenv("DOWNLOADS_DIR", "~/Downloads")),
         work_dir=expand(os.getenv("WORK_DIR", "~/Desktop/asst-tool-work")),
         whisper_model=os.getenv("WHISPER_MODEL", "mlx-community/whisper-large-v3-turbo"),
+        # The turbo model cannot translate -- it was distilled for transcription
+        # only and silently returns the source language. A separate model is used
+        # for the translation pass, downloaded on first use.
+        whisper_translate_model=os.getenv(
+            "WHISPER_TRANSLATE_MODEL", "mlx-community/whisper-large-v3-mlx"
+        ),
         web_host=os.getenv("WEB_HOST", "127.0.0.1"),
         web_port=int(os.getenv("WEB_PORT", "8765")),
     )

@@ -1,17 +1,41 @@
 # asst
 
-Harvest a Jira ticket's attachments into a tidy Desktop folder, transcribe the videos
-locally, and pull out the exact frames you care about.
+Someone attaches a two-minute screen recording to a bug ticket. Somewhere in it is the
+moment the thing breaks. This gets you the words and the picture, at the timestamp you
+care about, without scrubbing.
+
+Point it at a Jira ticket and it downloads the attachments into a tidy folder,
+transcribes the videos, and pulls stills from any stretch of timeline — each one
+labelled with what was being said at that instant.
 
 Two ways in:
 
-- **Claude drives it.** A skill (`jira-assets`) teaches Claude Code the whole flow:
-  open the ticket in your Chrome, download the attachments, file them, transcribe,
-  and hand you back the stills for any stretch of timeline.
+- **Claude drives it.** The bundled skill teaches Claude Code the whole flow. Ask
+  *"grab the assets from ABC-123 and tell me what's in the video"* and it harvests,
+  transcribes, extracts frames, and reads them back to you.
 - **You drive it.** `asst serve --open` gives you a local page: drop a video, get a
-  transcript, mark in/out, get frames.
+  transcript, mark in and out, get frames.
 
-Nothing is uploaded anywhere. Whisper runs on your own GPU.
+**Nothing is uploaded anywhere.** Transcription runs on your machine; the only network
+calls are to your own Jira and a one-time model download from Hugging Face.
+
+---
+
+## Requirements
+
+```bash
+brew install uv ffmpeg
+```
+
+| Platform | Transcription | Notes |
+| --- | --- | --- |
+| macOS, Apple Silicon | GPU via [MLX](https://github.com/ml-explore/mlx) | ~10× real time |
+| macOS Intel · Linux · Windows | CPU via openai-whisper | Same output, several × slower |
+
+The backend is picked automatically; `ASST_WHISPER_BACKEND=mlx\|openai` forces one.
+Model weights (~1.5 GB) download on your first transcription.
+
+Frame extraction, the Jira side, and the web UI are platform-independent.
 
 ---
 
@@ -136,8 +160,17 @@ asst transcribe demo.mov --no-translate    # skip the English pass
 ```
 
 Auto-detects the language, and when it isn't English also writes an English
-translation alongside. Re-running reuses the existing transcript unless you pass
-`--force`.
+translation alongside as `transcript.en.*`. Re-running reuses the existing transcript
+unless you pass `--force`.
+
+> **On translation.** The default model, `whisper-large-v3-turbo`, is distilled for
+> transcription only — asked to translate, it silently returns the source language
+> rather than failing. So the English pass uses a separate non-turbo model
+> (`whisper-large-v3`, ~3 GB), fetched the first time you transcribe something that
+> isn't in English. Override it with `WHISPER_TRANSLATE_MODEL`, choose per-run with
+> `--translate-model`, or skip the whole thing with `--no-translate`. If translation
+> can't run, the transcript is still written and the reason lands in
+> `transcript.json` under `translation_note`.
 
 Read one back:
 
@@ -198,9 +231,35 @@ share one library.
 | `asst jira import <KEY> <files…>` | file something you saved by hand |
 | `asst jira status <KEY>` | what's been harvested |
 | `asst transcribe <file\|KEY>` | Whisper transcript + English translation |
+| `asst library` | every harvested ticket, with transcript / frame status |
 | `asst transcript <file>` | read a transcript back, filtered |
 | `asst frames <file>` | extract stills |
 | `asst probe <file>` | duration, codecs, resolution |
 | `asst serve` | the web UI |
 
 Add `--json` to any of them for machine-readable output — that's what Claude uses.
+
+## Configuration
+
+`asst login` writes the first three; the rest are optional. Config lives at
+`~/.config/asst/.env`, outside the plugin so it survives plugin updates.
+
+| Variable | Default | What it does |
+| --- | --- | --- |
+| `JIRA_BASE_URL` | — | your Atlassian site |
+| `JIRA_EMAIL` / `JIRA_API_TOKEN` | — | headless auth; without them the browser flow is used |
+| `ASSET_ROOT` | `~/Desktop` | where ticket folders are created |
+| `DOWNLOADS_DIR` | `~/Downloads` | where the browser flow looks for downloads |
+| `WHISPER_MODEL` | `whisper-large-v3-turbo` | transcription weights |
+| `WHISPER_TRANSLATE_MODEL` | `whisper-large-v3` | weights for the English pass |
+| `ASST_WHISPER_BACKEND` | auto | force `mlx` or `openai` |
+| `WEB_HOST` / `WEB_PORT` | `127.0.0.1:8765` | web UI bind address |
+
+## What it doesn't do
+
+- Jira Server / Data Center — Cloud REST v3 only.
+- Attachments embedded in a description via Atlassian's media service rather than
+  added as real attachments; those aren't in the issue's attachment list, so save
+  them by hand and use `asst jira import`.
+- Speaker diarisation — Whisper gives you the words, not who said them.
+- Bulk harvesting across a JQL query; it's one ticket at a time.

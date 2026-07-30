@@ -26,9 +26,47 @@ class TranscribeError(RuntimeError):
     pass
 
 
+def cannot_translate(model: str) -> bool:
+    """Whisper's turbo weights were distilled for transcription only.
+
+    Asking them for task="translate" doesn't error -- it just returns the source
+    language, which looks like a working translation until you read it.
+    """
+    return "turbo" in (model or "").lower()
+
+
 # ---------------------------------------------------------------- backend
 
 def _load_backend():
+    """Pick a Whisper implementation.
+
+    MLX (Apple Silicon GPU) is preferred when available, openai-whisper (CPU) is
+    the portable fallback. Set ASST_WHISPER_BACKEND=mlx|openai to force one.
+    """
+    import os
+
+    preferred = os.getenv("ASST_WHISPER_BACKEND", "").strip().lower()
+
+    if preferred in {"openai", "cpu", "whisper"}:
+        try:
+            import whisper  # type: ignore
+            return "openai", whisper
+        except ImportError as exc:
+            raise TranscribeError(
+                "ASST_WHISPER_BACKEND asked for openai-whisper, but it isn't installed. "
+                "Install it with:  uv pip install openai-whisper"
+            ) from exc
+
+    if preferred in {"mlx", "gpu"}:
+        try:
+            import mlx_whisper  # type: ignore
+            return "mlx", mlx_whisper
+        except ImportError as exc:
+            raise TranscribeError(
+                "ASST_WHISPER_BACKEND asked for mlx, but mlx-whisper isn't installed. "
+                "It only supports Apple Silicon."
+            ) from exc
+
     try:
         import mlx_whisper  # type: ignore
         return "mlx", mlx_whisper
@@ -39,7 +77,9 @@ def _load_backend():
         return "openai", whisper
     except ImportError as exc:
         raise TranscribeError(
-            "No Whisper backend installed. Run ./setup.sh in the asst_tool folder."
+            "No Whisper backend installed. Run setup.sh, or install one directly:\n"
+            "  Apple Silicon:  uv pip install mlx-whisper\n"
+            "  everywhere else: uv pip install openai-whisper"
         ) from exc
 
 
@@ -112,7 +152,14 @@ def _run_whisper(
                 condition_on_previous_text=False,
             )
         else:
-            name = model.split("/")[-1].replace("whisper-", "")
+            # "mlx-community/whisper-large-v3-mlx" -> "large-v3", which is what
+            # openai-whisper calls the same weights.
+            name = model.split("/")[-1]
+            for prefix in ("whisper-",):
+                if name.startswith(prefix):
+                    name = name[len(prefix):]
+            if name.endswith("-mlx"):
+                name = name[: -len("-mlx")]
             loaded = mod.load_model(name)  # type: ignore[attr-defined]
             result = loaded.transcribe(
                 str(audio), task=task, language=language,
@@ -209,6 +256,8 @@ def transcribe_media(
     *,
     model: str,
     translate: bool = True,
+    translate_model: str | None = None,
+    translate_fallback: str | None = None,
     language: str | None = None,
     progress: Progress | None = None,
 ) -> dict:
@@ -246,20 +295,45 @@ def transcribe_media(
         detected = (raw.get("language") or language or "unknown").lower()
 
         translation = None
+        translation_note = None
         if translate and detected not in {"en", "english"} and segments:
-            report("translate", 0.72, f"Translating {detected} -> English")
-            raw_en = _run_whisper(
-                backend, wav, model=model, task="translate", language=language,
-                duration=duration, progress=progress, stage="translate",
-                stage_lo=0.72, stage_hi=0.97,
-            )
-            en_segments = _clean_segments(raw_en.get("segments") or [])
-            if en_segments:
-                translation = {
-                    "language": "en",
-                    "text": to_plain_text(en_segments),
-                    "segments": en_segments,
-                }
+            tr_model = translate_model or model
+            if cannot_translate(tr_model):
+                fallback = translate_fallback or ""
+                if not fallback or cannot_translate(fallback):
+                    translation_note = (
+                        f"{tr_model} cannot translate (turbo weights are "
+                        "transcription-only). Set WHISPER_TRANSLATE_MODEL to a "
+                        "non-turbo model to enable translation."
+                    )
+                    tr_model = None
+                else:
+                    report("translate", 0.71,
+                           f"{tr_model.split('/')[-1]} can't translate — using "
+                           f"{fallback.split('/')[-1]} (downloads once)")
+                    tr_model = fallback
+
+            if tr_model:
+                report("translate", 0.72, f"Translating {detected} -> English")
+                try:
+                    raw_en = _run_whisper(
+                        backend, wav, model=tr_model, task="translate", language=language,
+                        duration=duration, progress=progress, stage="translate",
+                        stage_lo=0.72, stage_hi=0.97,
+                    )
+                except Exception as exc:  # a missing model shouldn't lose the transcript
+                    translation_note = f"translation failed with {tr_model}: {exc}"
+                else:
+                    en_segments = _clean_segments(raw_en.get("segments") or [])
+                    if en_segments:
+                        translation = {
+                            "language": "en",
+                            "model": tr_model,
+                            "text": to_plain_text(en_segments),
+                            "segments": en_segments,
+                        }
+                    else:
+                        translation_note = f"{tr_model} returned no translated segments"
 
     transcript = {
         "schema": 1,
@@ -280,6 +354,7 @@ def transcribe_media(
         "text": to_plain_text(segments),
         "segments": segments,
         "translation": translation,
+        "translation_note": translation_note,
     }
 
     report("writing", 0.98, "Writing transcript files")

@@ -392,7 +392,9 @@ def create_app() -> FastAPI:
 
             transcribe.transcribe_media(
                 path, out_dir, model=body.model or cfg.whisper_model,
-                translate=body.translate, language=body.language, progress=progress,
+                translate=body.translate,
+                translate_fallback=cfg.whisper_translate_model,
+                language=body.language, progress=progress,
             )
             return {"cached": False, "media_id": mid}
 

@@ -337,13 +337,18 @@ def cmd_transcribe(args) -> int:
             note(f"{src.name} ...")
         result = transcribe.transcribe_media(
             src, out_dir, model=args.model or cfg.whisper_model,
-            translate=not args.no_translate, language=args.language,
+            translate=not args.no_translate,
+            translate_model=args.translate_model,
+            translate_fallback=cfg.whisper_translate_model,
+            language=args.language,
             progress=progress if show else None,
         )
         if show:
             note("")
             note(f"  language: {result['language']}  segments: {len(result['segments'])}"
                  f"  took: {result['elapsed_seconds']}s")
+            if result.get("translation_note"):
+                note(f"  note    : {result['translation_note']}")
             note(f"  written : {out_dir}")
         results.append({"media": str(src), "dir": str(out_dir), "transcript": result,
                         "reused": False})
@@ -354,6 +359,7 @@ def cmd_transcribe(args) -> int:
          "duration": r["transcript"]["media"]["duration"],
          "segments": len(r["transcript"]["segments"]),
          "translated": bool(r["transcript"].get("translation")),
+         "translation_note": r["transcript"].get("translation_note"),
          "text": r["transcript"]["text"] if args.full_text else None,
          "files": sorted(p.name for p in Path(r["dir"]).glob("transcript.*"))}
         for r in results]}
@@ -741,6 +747,8 @@ def build_parser() -> argparse.ArgumentParser:
     t.add_argument("--model", help="override the Whisper model")
     t.add_argument("--language", help="force source language, e.g. hi, es (default: auto)")
     t.add_argument("--no-translate", action="store_true", help="skip the English pass")
+    t.add_argument("--translate-model",
+                   help="model for the English pass (turbo weights cannot translate)")
     t.add_argument("--force", action="store_true", help="redo even if a transcript exists")
     t.add_argument("--full-text", action="store_true", help="also print the timestamped text")
     t.set_defaults(func=cmd_transcribe)
