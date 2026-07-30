@@ -9,7 +9,7 @@
       "name": "jira-assets",
       "source": "./plugins/jira-assets",
       "description": "Download a Jira ticket's images and videos into a tidy Desktop folder, transcribe the videos locally with Whisper, and pull frames from any moment on the timeline.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "keywords": ["jira", "video", "transcription", "whisper", "frames"]
     }
   ]
