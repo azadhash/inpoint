@@ -123,7 +123,7 @@ Accepts a ticket key (does every video and audio file on it), a folder, or a sin
 file path. Auto-detects the language and also writes an English translation when the
 source isn't English. Already-transcribed files are reused unless you pass `--force`.
 
-The first run downloads the Whisper model (~1.5 GB) — say so before starting, and
+The first run downloads the Whisper model (~0.9 GB) — say so before starting, and
 expect it to take a few minutes. After that, transcription runs roughly 10× faster
 than real time.
 

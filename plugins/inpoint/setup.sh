@@ -44,5 +44,5 @@ Ready. Try:
   ./inpoint serve --open                     # drag-and-drop transcribe + frames UI
   ./inpoint jira open ABC-123                # start a ticket harvest
 
-The Whisper model (~1.5 GB) downloads on your first transcription.
+The Whisper model (~0.9 GB) downloads on your first transcription.
 EOF

@@ -9,6 +9,7 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import os
 import re
 import tempfile
 import time
@@ -33,6 +34,30 @@ def cannot_translate(model: str) -> bool:
     language, which looks like a working translation until you read it.
     """
     return "turbo" in (model or "").lower()
+
+
+def _mlx_model_path(model: str) -> str:
+    """Resolve an HF repo to a local dir mlx-whisper 0.4.x can load.
+
+    Newer mlx-community uploads (the quantised ones) ship `model.safetensors`,
+    but mlx-whisper <= 0.4.3 only looks for `weights.safetensors` / `weights.npz`.
+    Expose the file under the expected name via symlinks in a shim directory.
+    """
+    from huggingface_hub import snapshot_download
+
+    src = Path(model) if Path(model).exists() else Path(snapshot_download(repo_id=model))
+    if (src / "weights.safetensors").exists() or (src / "weights.npz").exists():
+        return str(src)
+    if not (src / "model.safetensors").exists():
+        return str(src)  # let mlx-whisper raise its own error
+    shim = Path(os.getenv("XDG_CACHE_HOME") or Path.home() / ".cache") / "inpoint" / "models" / model.replace("/", "--")
+    shim.mkdir(parents=True, exist_ok=True)
+    for name, target in (("weights.safetensors", "model.safetensors"), ("config.json", "config.json"),
+                         ("multilingual.tiktoken", "multilingual.tiktoken")):
+        link = shim / name
+        if (src / target).exists() and not link.exists():
+            link.symlink_to(src / target)
+    return str(shim)
 
 
 # ---------------------------------------------------------------- backend
@@ -144,7 +169,7 @@ def _run_whisper(
         if kind == "mlx":
             result = mod.transcribe(  # type: ignore[attr-defined]
                 str(audio),
-                path_or_hf_repo=model,
+                path_or_hf_repo=_mlx_model_path(model),
                 task=task,
                 language=language,
                 word_timestamps=True,
@@ -158,8 +183,8 @@ def _run_whisper(
             for prefix in ("whisper-",):
                 if name.startswith(prefix):
                     name = name[len(prefix):]
-            if name.endswith("-mlx"):
-                name = name[: -len("-mlx")]
+            # Quantisation suffixes are MLX-only; openai-whisper has one fp16 build.
+            name = re.sub(r"(-mlx)?(-\d+bit|-q\d)?$", "", name)
             loaded = mod.load_model(name)  # type: ignore[attr-defined]
             result = loaded.transcribe(
                 str(audio), task=task, language=language,

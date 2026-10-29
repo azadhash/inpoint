@@ -33,7 +33,8 @@ brew install uv ffmpeg
 | macOS Intel · Linux · Windows | CPU via openai-whisper | Same output, several × slower |
 
 The backend is picked automatically; `INPOINT_WHISPER_BACKEND=mlx\|openai` forces one.
-Model weights (~1.5 GB) download on your first transcription.
+Model weights (~0.9 GB) download on your first transcription. The whole install is
+about 1.4 GB on Apple Silicon; CPU platforms add ~0.6 GB for PyTorch.
 
 Frame extraction, the Jira side, and the web UI are platform-independent.
 
@@ -54,7 +55,7 @@ Or standalone, without Claude:
 ```
 
 Either way, `bin/inpoint` bootstraps its own virtualenv on first run. You need `uv` and
-`ffmpeg` (`brew install uv ffmpeg`). The Whisper model (~1.5 GB) downloads the first
+`ffmpeg` (`brew install uv ffmpeg`). The Whisper model (~0.9 GB) downloads the first
 time you transcribe something.
 
 ## Connect to Jira
@@ -169,10 +170,10 @@ Auto-detects the language, and when it isn't English also writes an English
 translation alongside as `transcript.en.*`. Re-running reuses the existing transcript
 unless you pass `--force`.
 
-> **On translation.** The default model, `whisper-large-v3-turbo`, is distilled for
+> **On translation.** The default model, `whisper-large-v3-turbo-8bit`, is distilled for
 > transcription only — asked to translate, it silently returns the source language
 > rather than failing. So the English pass uses a separate non-turbo model
-> (`whisper-large-v3`, ~3 GB), fetched the first time you transcribe something that
+> (`whisper-large-v3-8bit`, ~1.7 GB), fetched the first time you transcribe something that
 > isn't in English. Override it with `WHISPER_TRANSLATE_MODEL`, choose per-run with
 > `--translate-model`, or skip the whole thing with `--no-translate`. If translation
 > can't run, the transcript is still written and the reason lands in
@@ -256,8 +257,8 @@ Add `--json` to any of them for machine-readable output — that's what Claude u
 | `JIRA_EMAIL` / `JIRA_API_TOKEN` | — | headless auth; without them the browser flow is used |
 | `ASSET_ROOT` | `~/Desktop` | where ticket folders are created |
 | `DOWNLOADS_DIR` | `~/Downloads` | where the browser flow looks for downloads |
-| `WHISPER_MODEL` | `whisper-large-v3-turbo` | transcription weights |
-| `WHISPER_TRANSLATE_MODEL` | `whisper-large-v3` | weights for the English pass |
+| `WHISPER_MODEL` | `whisper-large-v3-turbo-8bit` | transcription weights; `-q4` halves it again |
+| `WHISPER_TRANSLATE_MODEL` | `whisper-large-v3-8bit` | weights for the English pass |
 | `INPOINT_WHISPER_BACKEND` | auto | force `mlx` or `openai` |
 | `WEB_HOST` / `WEB_PORT` | `127.0.0.1:8765` | web UI bind address |
 

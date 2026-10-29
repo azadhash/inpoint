@@ -35,4 +35,4 @@ if [ ! -x "$UV_PROJECT_ENVIRONMENT/bin/inpoint" ]; then
   printf '\033[1minpoint:\033[0m ready\n' >&2
 fi
 
-exec uv run --quiet --project "$ROOT" inpoint "$@"
+exec uv run --quiet --exact --project "$ROOT" inpoint "$@"

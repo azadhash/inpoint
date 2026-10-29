@@ -107,12 +107,12 @@ def get_config() -> Config:
         asset_root=expand(os.getenv("ASSET_ROOT", "~/Desktop")),
         downloads_dir=expand(os.getenv("DOWNLOADS_DIR", "~/Downloads")),
         work_dir=expand(os.getenv("WORK_DIR", "~/Desktop/inpoint-work")),
-        whisper_model=os.getenv("WHISPER_MODEL", "mlx-community/whisper-large-v3-turbo"),
+        whisper_model=os.getenv("WHISPER_MODEL", "mlx-community/whisper-large-v3-turbo-8bit"),
         # The turbo model cannot translate -- it was distilled for transcription
         # only and silently returns the source language. A separate model is used
         # for the translation pass, downloaded on first use.
         whisper_translate_model=os.getenv(
-            "WHISPER_TRANSLATE_MODEL", "mlx-community/whisper-large-v3-mlx"
+            "WHISPER_TRANSLATE_MODEL", "mlx-community/whisper-large-v3-8bit"
         ),
         web_host=os.getenv("WEB_HOST", "127.0.0.1"),
         web_port=int(os.getenv("WEB_PORT", "8765")),
