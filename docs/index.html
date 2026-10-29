@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>jira-assets</title>
+<meta name="description" content="A Claude Code plugin that pulls a Jira ticket's images and videos into a folder, transcribes the videos locally with Whisper, and grabs frames from any moment on the timeline.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,400;100,700;112,800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one 1080px column; the hero pairs copy with a mock video panel whose
+   burn-in timecode and timestamped transcript strip set the visual language. */
+:root {
+  color-scheme: light;
+  --bg: #f5f6f2;
+  --surface: #ffffff;
+  --panel: #171a17;
+  --panel-ink: #e9ebe4;
+  --panel-muted: #8f958b;
+  --ink: #171a17;
+  --muted: #5d635a;
+  --line: #d9dcd3;
+  --accent: #e0a100;
+  --accent-ink: #171a17;
+  --code-bg: #eceee7;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121412;
+    --surface: #1a1d1a;
+    --panel: #0b0c0b;
+    --panel-ink: #e9ebe4;
+    --panel-muted: #7f857b;
+    --ink: #eceee7;
+    --muted: #a0a69b;
+    --line: #2b2f2a;
+    --accent: #f0b429;
+    --accent-ink: #121412;
+    --code-bg: #202420;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121412;
+  --surface: #1a1d1a;
+  --panel: #0b0c0b;
+  --panel-ink: #e9ebe4;
+  --panel-muted: #7f857b;
+  --ink: #eceee7;
+  --muted: #a0a69b;
+  --line: #2b2f2a;
+  --accent: #f0b429;
+  --accent-ink: #121412;
+  --code-bg: #202420;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.wrap { max-width: 1080px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); font-stretch: 100%; line-height: 1.05; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(2.4rem, 6vw, 4.4rem); font-weight: 800; font-stretch: 112%; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.7rem, 3.4vw, 2.4rem); font-weight: 700; letter-spacing: -0.015em; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; max-width: 62ch; }
+.eyebrow { font-family: var(--mono); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+code, pre { font-family: var(--mono); font-size: 0.9em; }
+code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: 14px 18px; border-radius: 6px; overflow-x: auto; margin: 0; line-height: 1.5; }
+pre code { background: none; padding: 0; }
+.muted { color: var(--muted); }
+
+/* nav */
+nav { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 22px; flex-wrap: wrap; }
+.brand { font-family: var(--mono); font-weight: 500; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+.brand .dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
+nav .links { display: flex; gap: 22px; font-size: 0.95rem; }
+nav .links a { text-decoration: none; color: var(--muted); }
+nav .links a:hover { color: var(--ink); }
+
+/* hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 48px; align-items: center; padding-block: 56px 72px; }
+.hero .copy { display: grid; gap: 26px; }
+.hero .lede { font-size: 1.2rem; color: var(--muted); }
+.cta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.btn { font-family: var(--display); font-weight: 700; font-size: 0.95rem; text-decoration: none; padding: 12px 20px; border-radius: 4px; border: 1.5px solid var(--ink); display: inline-block; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.ghost { color: var(--ink); }
+.facts { display: flex; gap: 22px; flex-wrap: wrap; font-family: var(--mono); font-size: 0.82rem; color: var(--muted); }
+.facts span::before { content: "▸ "; color: var(--accent); }
+
+/* mock player */
+.player { background: var(--panel); color: var(--panel-ink); border-radius: 8px; overflow: hidden; box-shadow: 0 30px 60px -30px rgba(0,0,0,0.45); }
+.screen { position: relative; aspect-ratio: 16 / 9; background:
+  linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0)),
+  repeating-linear-gradient(90deg, transparent 0 59px, rgba(255,255,255,0.04) 59px 60px),
+  repeating-linear-gradient(0deg, transparent 0 59px, rgba(255,255,255,0.04) 59px 60px),
+  #1e221f; }
+.screen .ui { position: absolute; inset: 14% 12% 22%; border: 1px solid rgba(255,255,255,0.14); border-radius: 6px; background: rgba(255,255,255,0.03); display: grid; grid-template-rows: 28px 1fr; }
+.screen .ui .bar { border-bottom: 1px solid rgba(255,255,255,0.12); display: flex; align-items: center; gap: 6px; padding: 0 10px; }
+.screen .ui .bar i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.22); }
+.screen .ui .body { padding: 12px; display: grid; gap: 8px; align-content: start; }
+.screen .ui .row { height: 10px; border-radius: 2px; background: rgba(255,255,255,0.13); }
+.screen .ui .row.err { background: rgba(224,70,70,0.65); width: 55%; }
+.tc { position: absolute; left: 14px; bottom: 12px; font-family: var(--mono); font-size: 0.85rem; font-weight: 500; color: var(--accent); background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 3px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+.tc.right { left: auto; right: 14px; color: var(--panel-ink); }
+.inout { position: absolute; top: 0; height: 100%; width: 2px; background: var(--accent); }
+.inout::after { content: attr(data-l); position: absolute; top: 8px; left: 6px; font-family: var(--mono); font-size: 0.7rem; color: var(--accent); }
+.inout.i { left: 38%; } .inout.o { left: 61%; }
+.timeline { height: 6px; background: rgba(255,255,255,0.1); position: relative; }
+.timeline .range { position: absolute; left: 38%; width: 23%; top: 0; bottom: 0; background: var(--accent); opacity: 0.85; }
+.transcript { padding: 14px 16px 16px; display: grid; gap: 7px; font-size: 0.86rem; }
+.transcript .l { display: grid; grid-template-columns: 96px 1fr; gap: 12px; color: var(--panel-muted); }
+.transcript .l b { font-family: var(--mono); font-weight: 400; font-variant-numeric: tabular-nums; }
+.transcript .l.on { color: var(--panel-ink); }
+.transcript .l.on b { color: var(--accent); }
+.strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 0 16px 16px; }
+.strip div { aspect-ratio: 16 / 9; background: #2a2e2b; border-radius: 3px; position: relative; overflow: hidden; }
+.strip div::after { content: attr(data-t); position: absolute; left: 5px; bottom: 4px; font-family: var(--mono); font-size: 0.62rem; color: var(--accent); background: rgba(0,0,0,0.55); padding: 1px 4px; border-radius: 2px; font-variant-numeric: tabular-nums; }
+
+/* sections */
+section { padding-block: 64px; border-top: 1px solid var(--line); }
+.sec-head { display: grid; gap: 12px; margin-bottom: 36px; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.step { display: grid; gap: 12px; align-content: start; }
+.step .n { font-family: var(--mono); font-size: 0.8rem; color: var(--accent); font-weight: 500; }
+.step pre { font-size: 0.82rem; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 26px; display: grid; gap: 14px; align-content: start; }
+.card blockquote { margin: 0; padding: 12px 16px; border-left: 3px solid var(--accent); background: var(--code-bg); font-style: italic; }
+.keys { display: flex; gap: 8px; flex-wrap: wrap; }
+.keys kbd { font-family: var(--mono); font-size: 0.8rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 2px 7px; background: var(--surface); }
+.tree { font-family: var(--mono); font-size: 0.84rem; line-height: 1.6; }
+.tree .c { color: var(--muted); }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 40px; align-items: start; }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 500; }
+td code { white-space: nowrap; }
+.tbl { overflow-x: auto; }
+.privacy { background: var(--panel); color: var(--panel-ink); border-radius: 8px; padding: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
+.privacy h2 { color: var(--panel-ink); }
+.privacy p { color: var(--panel-muted); }
+.privacy ul { margin: 0; padding-left: 18px; color: var(--panel-ink); display: grid; gap: 6px; }
+.nots { display: grid; gap: 10px; padding-left: 18px; margin: 0; max-width: 62ch; }
+footer { border-top: 1px solid var(--line); padding-block: 32px 48px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 0.9rem; color: var(--muted); }
+footer a { color: var(--ink); }
+
+@media (max-width: 860px) {
+  .hero, .two, .split, .privacy { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: 1fr; }
+  .hero { padding-block: 32px 48px; gap: 36px; }
+  section { padding-block: 48px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .timeline .range { animation: pulse 2.6s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 0.85; } 50% { opacity: 0.55; } }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav>
+  <a class="brand" href="#"><span class="dot"></span>jira-assets</a>
+  <div class="links">
+    <a href="#how">How it works</a>
+    <a href="#install">Install</a>
+    <a href="#commands">Commands</a>
+    <a href="https://github.com/azadhash/asst_tool">GitHub</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="copy">
+    <span class="eyebrow">Claude Code plugin</span>
+    <h1>The words and the picture, at the timestamp you care about.</h1>
+    <p class="lede">Someone attaches a two-minute screen recording to a bug ticket. Somewhere in it is the moment the thing breaks. jira-assets pulls the ticket's attachments into a folder, transcribes the videos on your machine, and hands you the frames from any stretch of the timeline, each labelled with what was being said.</p>
+    <div class="cta">
+      <a class="btn primary" href="#install">Install in Claude Code</a>
+      <a class="btn ghost" href="https://github.com/azadhash/asst_tool">View on GitHub</a>
+    </div>
+    <div class="facts">
+      <span>Nothing uploaded</span>
+      <span>Whisper, local</span>
+      <span>MIT</span>
+    </div>
+  </div>
+
+  <div class="player" aria-label="Illustration of a transcribed video with an in and out range and extracted frames">
+    <div class="screen">
+      <div class="ui">
+        <div class="bar"><i></i><i></i><i></i></div>
+        <div class="body">
+          <div class="row" style="width:70%"></div>
+          <div class="row" style="width:45%"></div>
+          <div class="row err"></div>
+          <div class="row" style="width:60%"></div>
+        </div>
+      </div>
+      <span class="inout i" data-l="IN"></span>
+      <span class="inout o" data-l="OUT"></span>
+      <span class="tc">00:01:23.500</span>
+      <span class="tc right">bug-repro.mp4</span>
+    </div>
+    <div class="timeline"><span class="range"></span></div>
+    <div class="transcript">
+      <div class="l"><b>00:01:12.040</b><span>so I add the item and go to checkout</span></div>
+      <div class="l on"><b>00:01:23.500</b><span>and right here the total just goes blank</span></div>
+      <div class="l"><b>00:01:31.880</b><span>refreshing doesn't bring it back either</span></div>
+    </div>
+    <div class="strip">
+      <div data-t="1:20"></div><div data-t="1:23"></div><div data-t="1:27"></div><div data-t="1:31"></div>
+    </div>
+  </div>
+</header>
+
+<section id="how">
+  <div class="sec-head">
+    <span class="eyebrow">How it works</span>
+    <h2>Three steps, one ticket key.</h2>
+    <p class="muted">Ask Claude to grab the assets from a ticket and it runs the whole chain. Each step is also a plain command you can run yourself.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <span class="n">01 · Harvest</span>
+      <h3>Download every attachment</h3>
+      <p>Images, videos, audio and files land in a per-ticket folder on your Desktop, with a manifest and a readable summary of the ticket.</p>
+      <pre><code>asst jira fetch ISP-482</code></pre>
+    </div>
+    <div class="step">
+      <span class="n">02 · Transcribe</span>
+      <h3>Whisper, on your machine</h3>
+      <p>Word-level timestamps in JSON, SRT, VTT and plain text. Non-English audio also gets an English translation written alongside.</p>
+      <pre><code>asst transcribe ISP-482</code></pre>
+    </div>
+    <div class="step">
+      <span class="n">03 · Frames</span>
+      <h3>Stills from any moment</h3>
+      <p>One timestamp, a list, a range every N seconds, or every scene change. With a transcript present, each frame is annotated with what was said.</p>
+      <pre><code>asst frames bug-repro.mp4 \
+  --range 1:20-1:40 --every 2s --sheet</code></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">Two ways in</span>
+    <h2>Let Claude drive, or drive it yourself.</h2>
+  </div>
+  <div class="two">
+    <div class="card">
+      <h3>Claude drives it</h3>
+      <p>The bundled skill teaches Claude Code the full flow. It harvests, transcribes, extracts frames and reads the result back to you. If you have the Claude in Chrome extension it can use your logged-in browser, so no token is stored.</p>
+      <blockquote>Grab the assets from ISP-482 and tell me what's in the video.</blockquote>
+    </div>
+    <div class="card">
+      <h3>You drive it</h3>
+      <p>A local web page for scrubbing by hand. Drop a video, get a transcript, click a line to jump there, mark in and out, extract frames, download the lot as a zip.</p>
+      <pre><code>asst serve --open</code></pre>
+      <div class="keys"><kbd>i</kbd><kbd>o</kbd><kbd>space</kbd><kbd>←</kbd><kbd>→</kbd><kbd>⟦⟧</kbd></div>
+      <p class="muted" style="font-size:0.9rem">Mark in and out, play, step one frame, or snap the range to a transcript line.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="split">
+    <div class="sec-head" style="margin:0">
+      <span class="eyebrow">The folder</span>
+      <h2>Everything for a ticket in one place.</h2>
+      <p class="muted">Harvests are shared state on disk. A second Claude session, another terminal, or the web UI all see the same library. Run <code>asst library</code> to list every ticket and what has been done to it.</p>
+    </div>
+    <pre class="tree">~/Desktop/ISP/ISP-482/
+├── ticket.json            <span class="c">summary, status, attachment manifest</span>
+├── README.md              <span class="c">the same thing, readable</span>
+├── images/                screenshot.png
+├── videos/                bug-repro.mp4
+├── audio/                 voice-note.m4a
+├── files/                 logs.txt
+├── transcripts/bug-repro/
+│   ├── transcript.json    <span class="c">segments + word timestamps</span>
+│   ├── transcript.srt     <span class="c">also .vtt .txt .timed.txt</span>
+│   └── transcript.en.*    <span class="c">English, if the source wasn't</span>
+└── frames/bug-repro/
+    ├── frame_00-01-23.500.jpg
+    └── contact-sheet.jpg</pre>
+  </div>
+</section>
+
+<section id="install">
+  <div class="split">
+    <div class="sec-head" style="margin:0">
+      <span class="eyebrow">Install</span>
+      <h2>Two commands in Claude Code.</h2>
+      <p class="muted">The first <code>asst</code> call builds its own virtualenv. Expect a couple of minutes once, then it is instant. Whisper weights, about 1.5 GB, download on your first transcription.</p>
+    </div>
+    <div style="display:grid;gap:14px">
+      <pre><code>/plugin marketplace add azadhash/asst_tool
+/plugin install jira-assets@asst-tools
+/reload-plugins</code></pre>
+      <p class="muted" style="font-size:0.9rem">Prerequisites</p>
+      <pre><code>brew install uv ffmpeg</code></pre>
+      <p class="muted" style="font-size:0.9rem">Connect to Jira with an API token, or skip this and let Claude use your browser.</p>
+      <pre><code>asst login
+asst doctor</code></pre>
+    </div>
+  </div>
+  <div class="tbl" style="margin-top:36px">
+    <table>
+      <thead><tr><th>Platform</th><th>Transcription</th><th>Speed</th></tr></thead>
+      <tbody>
+        <tr><td>macOS, Apple Silicon</td><td>GPU via MLX</td><td>about 10× real time</td></tr>
+        <tr><td>macOS Intel, Linux, Windows</td><td>CPU via openai-whisper</td><td>same output, several × slower</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="privacy">
+    <div>
+      <h2>Nothing leaves your machine.</h2>
+      <p style="margin-top:12px">Transcription runs locally. The only network calls are to your own Jira site and a one-time model download from Hugging Face.</p>
+    </div>
+    <ul>
+      <li>Your API token is stored with owner-only permissions, outside the plugin folder.</li>
+      <li>Browser mode stores nothing; it reuses your existing Chrome session.</li>
+      <li>Videos, transcripts and frames stay in the ticket folder on your Desktop.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="commands">
+  <div class="sec-head">
+    <span class="eyebrow">Command reference</span>
+    <h2>Every command takes <code>--json</code>.</h2>
+    <p class="muted">That is how Claude talks to it. The same flags work for you in a terminal.</p>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><code>asst jira fetch &lt;KEY&gt;</code></td><td>Read the ticket and download everything, no browser needed</td></tr>
+        <tr><td><code>asst transcribe &lt;file|KEY&gt;</code></td><td>Whisper transcript plus English translation</td></tr>
+        <tr><td><code>asst transcript &lt;file&gt;</code></td><td>Read a transcript back, by range or search term</td></tr>
+        <tr><td><code>asst frames &lt;file&gt;</code></td><td>Extract stills at timestamps, over a range, or at scene changes</td></tr>
+        <tr><td><code>asst library</code></td><td>Every harvested ticket, with transcript and frame status</td></tr>
+        <tr><td><code>asst jira status &lt;KEY&gt;</code></td><td>What has been harvested for one ticket</td></tr>
+        <tr><td><code>asst jira import &lt;KEY&gt; &lt;files…&gt;</code></td><td>File something you saved by hand</td></tr>
+        <tr><td><code>asst probe &lt;file&gt;</code></td><td>Duration, codecs, resolution</td></tr>
+        <tr><td><code>asst serve</code></td><td>The local web UI</td></tr>
+        <tr><td><code>asst doctor</code></td><td>Check ffmpeg, Whisper, paths and Jira auth</td></tr>
+        <tr><td><code>asst login</code> / <code>asst logout</code></td><td>Store or clear a Jira API token</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">Scope</span>
+    <h2>What it doesn't do.</h2>
+  </div>
+  <ul class="nots">
+    <li>Jira Server or Data Center. It speaks Cloud REST v3 only.</li>
+    <li>Media embedded in a description through Atlassian's media service. Those are not real attachments, so save them by hand and use <code>asst jira import</code>.</li>
+    <li>Speaker diarisation. Whisper gives you the words, not who said them.</li>
+    <li>Bulk harvesting across a JQL query. It is one ticket at a time.</li>
+  </ul>
+</section>
+
+<footer>
+  <span>jira-assets · MIT licensed</span>
+  <span><a href="https://github.com/azadhash/asst_tool">github.com/azadhash/asst_tool</a></span>
+</footer>
+
+</div>
+</body>
+</html>
