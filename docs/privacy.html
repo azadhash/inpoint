@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · inpoint</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+:root { color-scheme: light; --bg:#f5f6f2; --ink:#171a17; --muted:#5d635a; --line:#d9dcd3; --accent:#e0a100; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; --bg:#121412; --ink:#eceee7; --muted:#a0a69b; --line:#2b2f2a; --accent:#f0b429; } }
+:root[data-theme="dark"] { color-scheme: dark; --bg:#121412; --ink:#eceee7; --muted:#a0a69b; --line:#2b2f2a; --accent:#f0b429; }
+body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.6 "IBM Plex Sans","Helvetica Neue",Arial,sans-serif; padding: 40px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); }
+main { max-width: 64ch; margin: 0 auto; }
+h1 { font-family:"Archivo","Helvetica Neue",Arial,sans-serif; font-weight:800; font-size:2.2rem; letter-spacing:-0.02em; margin:0 0 8px; }
+h2 { font-family:"Archivo","Helvetica Neue",Arial,sans-serif; font-weight:700; font-size:1.2rem; margin:32px 0 8px; }
+p, li { margin:0 0 12px; }
+.meta { color:var(--muted); font-size:0.9rem; }
+a { color:var(--ink); }
+hr { border:0; border-top:1px solid var(--line); margin:32px 0; }
+</style>
+</head>
+<body>
+<main>
+<p class="meta"><a href="./">inpoint</a></p>
+<h1>Privacy</h1>
+<p class="meta">Last updated 29 October 2026</p>
+
+<p>inpoint is a command-line tool and Claude Code plugin that runs entirely on your own computer. It has no server, no account, and no analytics. Its author never receives any data from it.</p>
+
+<h2>What it processes</h2>
+<p>When you point it at a Jira ticket, it reads that ticket and downloads its attachments to a folder on your computer. Video and audio files are transcribed on your computer. Frames are extracted on your computer. All results are written to the same local folder.</p>
+
+<h2>Network connections it makes</h2>
+<ul>
+  <li><strong>Your Jira site</strong>, to read the ticket and download attachments, using either an API token you created or your own browser session.</li>
+  <li><strong>Hugging Face</strong>, once, to download Whisper model weights the first time they are needed. No data about you or your tickets is sent; it is a file download.</li>
+  <li><strong>Apple</strong>, on macOS 26 and later, when the operating system installs its own speech recognition assets. Audio is processed on the device and is not sent to Apple by this tool.</li>
+</ul>
+<p>Nothing else. No audio, transcripts, images, ticket content, or usage information leaves your computer.</p>
+
+<h2>Credentials</h2>
+<p>If you choose to use a Jira API token, it is stored in a file readable only by your user account, outside the plugin folder, and is sent only to your own Jira site. You can remove it at any time with <code>inpoint logout</code>.</p>
+
+<h2>Claude Code</h2>
+<p>When the plugin is driven by Claude Code, the text Claude reads back to you, such as a transcript, passes through Claude under Anthropic's own privacy terms, exactly as any other file you ask Claude to read would.</p>
+
+<hr>
+<p class="meta">Questions: open an issue at <a href="https://github.com/azadhash/inpoint/issues">github.com/azadhash/inpoint/issues</a>.</p>
+</main>
+</body>
+</html>
