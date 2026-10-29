@@ -14,7 +14,7 @@ Nothing is uploaded anywhere. Transcription runs on your own machine.
 ## Install
 
 ```
-/plugin marketplace add azad-betacraft/asst-tools
+/plugin marketplace add azadhash/asst_tool
 /plugin install jira-assets@asst-tools
 /reload-plugins
 ```
