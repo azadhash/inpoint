@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>jira-assets</title>
 <meta name="description" content="A Claude Code plugin that pulls a Jira ticket's images and videos into a folder, transcribes the videos locally with Whisper, and grabs frames from any moment on the timeline.">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,400;100,700;112,800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -89,7 +90,7 @@ pre code { background: none; padding: 0; }
 /* nav */
 nav { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 22px; flex-wrap: wrap; }
 .brand { font-family: var(--mono); font-weight: 500; text-decoration: none; display: flex; align-items: center; gap: 10px; }
-.brand .dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
+.brand svg { width: 26px; height: 26px; display: block; }
 nav .links { display: flex; gap: 22px; font-size: 0.95rem; }
 nav .links a { text-decoration: none; color: var(--muted); }
 nav .links a:hover { color: var(--ink); }
@@ -178,7 +179,7 @@ footer a { color: var(--ink); }
 <div class="wrap">
 
 <nav>
-  <a class="brand" href="#"><span class="dot"></span>jira-assets</a>
+  <a class="brand" href="#"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 19V11a4 4 0 0 1 4-4h8"/><path d="M45 7h8a4 4 0 0 1 4 4v8"/><path d="M57 45v8a4 4 0 0 1-4 4h-8"/><path d="M19 57h-8a4 4 0 0 1-4-4v-8"/></g><path d="M17 46h30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.28"/><path d="M35 19h-9v27" fill="none" stroke="var(--accent)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="26" cy="46" r="4.5" fill="var(--accent)"/></svg>jira-assets</a>
   <div class="links">
     <a href="#how">How it works</a>
     <a href="#install">Install</a>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 64" width="300" height="64" role="img" aria-label="Inpoint">
+  <g fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7 19V11a4 4 0 0 1 4-4h8"/>
+    <path d="M45 7h8a4 4 0 0 1 4 4v8"/>
+    <path d="M57 45v8a4 4 0 0 1-4 4h-8"/>
+    <path d="M19 57h-8a4 4 0 0 1-4-4v-8"/>
+  </g>
+  <path d="M17 46h30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.28"/>
+  <path d="M35 19h-9v27" fill="none" stroke="#E0A100" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="26" cy="46" r="4.5" fill="#E0A100"/>
+  <text x="80" y="45" font-family="Archivo, 'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="38" letter-spacing="-1" fill="currentColor">inpoint</text>
+</svg>

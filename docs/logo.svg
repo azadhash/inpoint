@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Inpoint logo">
+  <!-- viewfinder frame -->
+  <g fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7 19V11a4 4 0 0 1 4-4h8"/>
+    <path d="M45 7h8a4 4 0 0 1 4 4v8"/>
+    <path d="M57 45v8a4 4 0 0 1-4 4h-8"/>
+    <path d="M19 57h-8a4 4 0 0 1-4-4v-8"/>
+  </g>
+  <!-- timeline -->
+  <path d="M17 46h30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.28"/>
+  <!-- in-point marker -->
+  <g fill="none" stroke="#E0A100" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M35 19h-9v27"/>
+  </g>
+  <circle cx="26" cy="46" r="4.5" fill="#E0A100"/>
+</svg>
