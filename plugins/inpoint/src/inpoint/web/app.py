@@ -1,4 +1,4 @@
-"""FastAPI app behind `asst serve`.
+"""FastAPI app behind `inpoint serve`.
 
 Drop a video in, get a transcript, pick a time range, get the frames. Everything
 runs locally; the only state is a small registry mapping ids to file paths.
@@ -77,7 +77,7 @@ class Jobs:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._jobs: dict[str, dict] = {}
-        self._pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="asst-job")
+        self._pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="inpoint-job")
 
     def create(self, kind: str, media_id: str) -> dict:
         job = {
@@ -280,7 +280,7 @@ def create_app() -> FastAPI:
     registry = Registry(cfg.work_dir / "registry.json")
     jobs = Jobs()
 
-    app = FastAPI(title="asst", docs_url=None, redoc_url=None)
+    app = FastAPI(title="inpoint", docs_url=None, redoc_url=None)
     if STATIC_DIR.is_dir():
         app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
@@ -288,7 +288,7 @@ def create_app() -> FastAPI:
     def index() -> HTMLResponse:
         page = STATIC_DIR / "index.html"
         if not page.is_file():
-            return HTMLResponse("<h1>asst</h1><p>static/index.html is missing.</p>", 500)
+            return HTMLResponse("<h1>inpoint</h1><p>static/index.html is missing.</p>", 500)
         return HTMLResponse(page.read_text())
 
     @app.get("/api/config")

@@ -28,21 +28,21 @@ if [ ! -f .env ]; then
 fi
 
 if [ "${1:-}" = "--link-skill" ]; then
-  say "Linking the jira-assets skill into ~/.claude/skills"
+  say "Linking the inpoint skill into ~/.claude/skills"
   mkdir -p "$HOME/.claude/skills"
-  ln -sfn "$PWD/.claude/skills/jira-assets" "$HOME/.claude/skills/jira-assets"
-  echo "    linked: $HOME/.claude/skills/jira-assets -> $PWD/.claude/skills/jira-assets"
+  ln -sfn "$PWD/.claude/skills/inpoint" "$HOME/.claude/skills/inpoint"
+  echo "    linked: $HOME/.claude/skills/inpoint -> $PWD/.claude/skills/inpoint"
 fi
 
 say "Running doctor"
-uv run asst doctor || true
+uv run inpoint doctor || true
 
 cat <<'EOF'
 
 Ready. Try:
-  ./asst doctor
-  ./asst serve --open                     # drag-and-drop transcribe + frames UI
-  ./asst jira open ABC-123                # start a ticket harvest
+  ./inpoint doctor
+  ./inpoint serve --open                     # drag-and-drop transcribe + frames UI
+  ./inpoint jira open ABC-123                # start a ticket harvest
 
 The Whisper model (~1.5 GB) downloads on your first transcription.
 EOF

@@ -51,7 +51,7 @@ def parse_ref(ref: str, cfg: Config) -> tuple[str, str]:
 
     if not base:
         raise JiraError(
-            "No Jira site configured. Run `asst login`, or set JIRA_BASE_URL in your "
+            "No Jira site configured. Run `inpoint login`, or set JIRA_BASE_URL in your "
             "config — or just pass the full ticket URL instead of the key."
         )
 
@@ -258,7 +258,7 @@ def load_ticket(cfg: Config, key_or_dir: str) -> tuple[Path, dict]:
         root = find_ticket_dir(cfg, key)
     if root is None or not ticket_json_path(root).is_file():
         raise JiraError(
-            f"no harvested ticket found for {key_or_dir!r}. Run `asst jira ingest` first."
+            f"no harvested ticket found for {key_or_dir!r}. Run `inpoint jira ingest` first."
         )
     return root, json.loads(ticket_json_path(root).read_text())
 

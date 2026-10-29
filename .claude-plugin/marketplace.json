@@ -1,13 +1,13 @@
 {
-  "name": "asst-tools",
+  "name": "inpoint",
   "description": "Tools for turning ticket attachments into things you can actually read: local video transcription, frame extraction, and tidy asset folders.",
   "owner": {
     "name": "Azad Singh"
   },
   "plugins": [
     {
-      "name": "jira-assets",
-      "source": "./plugins/jira-assets",
+      "name": "inpoint",
+      "source": "./plugins/inpoint",
       "description": "Download a Jira ticket's images and videos into a tidy Desktop folder, transcribe the videos locally with Whisper, and pull frames from any moment on the timeline.",
       "version": "1.2.0",
       "keywords": ["jira", "video", "transcription", "whisper", "frames"]

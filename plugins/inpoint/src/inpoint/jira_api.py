@@ -45,7 +45,7 @@ class JiraApi:
             raise JiraAuthError(
                 "No API token configured. Either set JIRA_EMAIL and JIRA_API_TOKEN in "
                 ".env (get one at https://id.atlassian.com/manage-profile/security/api-tokens), "
-                "or use the browser flow: asst jira open <KEY>"
+                "or use the browser flow: inpoint jira open <KEY>"
             )
         self.base = cfg.jira_base_url.rstrip("/")
         self.email, self.token = creds

@@ -1,10 +1,10 @@
 # Static landing page on Cloudflare Workers. Deploy: wrangler deploy
-name = "jira-assets-site"
+name = "inpoint-site"
 compatibility_date = "2026-10-01"
 
 [assets]
 directory = "./docs"
 
 [[routes]]
-pattern = "jira-assets.unibot.in"
+pattern = "inpoint.unibot.in"
 custom_domain = true

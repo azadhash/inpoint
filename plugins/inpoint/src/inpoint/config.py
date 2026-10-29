@@ -39,11 +39,11 @@ def _user_config_path() -> Path:
     A plugin's own folder is replaced wholesale when the plugin updates, so a
     token stored there would silently vanish. This survives updates.
     """
-    override = os.getenv("ASST_CONFIG")
+    override = os.getenv("INPOINT_CONFIG")
     if override:
         return expand(override)
     base = os.getenv("XDG_CONFIG_HOME") or "~/.config"
-    return expand(base) / "asst" / ".env"
+    return expand(base) / "inpoint" / ".env"
 
 
 ENV_PATH = _user_config_path()
@@ -99,14 +99,14 @@ def write_env(updates: dict[str, str]) -> Path:
 @lru_cache(maxsize=1)
 def get_config() -> Config:
     # Project .env first (handy when working in a checkout), then the user config,
-    # which wins because it is the one `asst login` writes.
+    # which wins because it is the one `inpoint login` writes.
     load_dotenv(PROJECT_ENV_PATH)
     load_dotenv(ENV_PATH, override=True)
     return Config(
         jira_base_url=os.getenv("JIRA_BASE_URL", "").strip().rstrip("/"),
         asset_root=expand(os.getenv("ASSET_ROOT", "~/Desktop")),
         downloads_dir=expand(os.getenv("DOWNLOADS_DIR", "~/Downloads")),
-        work_dir=expand(os.getenv("WORK_DIR", "~/Desktop/asst-tool-work")),
+        work_dir=expand(os.getenv("WORK_DIR", "~/Desktop/inpoint-work")),
         whisper_model=os.getenv("WHISPER_MODEL", "mlx-community/whisper-large-v3-turbo"),
         # The turbo model cannot translate -- it was distilled for transcription
         # only and silently returns the source language. A separate model is used

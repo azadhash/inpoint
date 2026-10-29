@@ -1,13 +1,13 @@
-"""asst -- command line entry point.
+"""inpoint -- command line entry point.
 
-    asst jira open ABC-123          print the ticket URL + the JS Claude runs to read it
-    asst jira ingest --manifest -   create the folders, print the download plan
-    asst jira collect ABC-123       file whatever Chrome just downloaded
-    asst transcribe <video|KEY>     Whisper transcript + English translation
-    asst frames <video> --range ... stills at the timestamps you care about
-    asst transcript <video> --range what is being said between two timestamps
-    asst library                    everything harvested so far, across all tickets
-    asst serve                      the drag-and-drop web UI
+    inpoint jira open ABC-123          print the ticket URL + the JS Claude runs to read it
+    inpoint jira ingest --manifest -   create the folders, print the download plan
+    inpoint jira collect ABC-123       file whatever Chrome just downloaded
+    inpoint transcribe <video|KEY>     Whisper transcript + English translation
+    inpoint frames <video> --range ... stills at the timestamps you care about
+    inpoint transcript <video> --range what is being said between two timestamps
+    inpoint library                    everything harvested so far, across all tickets
+    inpoint serve                      the drag-and-drop web UI
 """
 
 from __future__ import annotations
@@ -108,7 +108,7 @@ def cmd_jira_ingest(args) -> int:
         "attachment_count": len(plan),
         "plan": plan,
         "download_snippet": jira.download_snippet(plan) if plan else "",
-        "next": f"asst jira collect {ticket['key']}",
+        "next": f"inpoint jira collect {ticket['key']}",
     }
     lines = [
         f"{ticket['key']} — {ticket['summary']}",
@@ -119,7 +119,7 @@ def cmd_jira_ingest(args) -> int:
         lines.append(f"  [{item['kind']:5}] {item['filename']}  ({human_size(item['size'])})")
     if plan:
         lines += ["", "Now run the download snippet in the Jira tab, then:",
-                  f"  asst jira collect {ticket['key']}"]
+                  f"  inpoint jira collect {ticket['key']}"]
     emit(payload, args, lines)
     return 0
 
@@ -377,7 +377,7 @@ def cmd_transcript(args) -> int:
     out_dir = Path(args.out).expanduser() if args.out else sidecar_dir(src, "transcripts")
     data = transcribe.load_transcript(out_dir)
     if not data:
-        raise SystemExit(f"no transcript at {out_dir} -- run:  asst transcribe {src}")
+        raise SystemExit(f"no transcript at {out_dir} -- run:  inpoint transcribe {src}")
 
     segs = (data.get("translation") or data)["segments"] if args.translated else data["segments"]
     label = "en (translated)" if args.translated else data["language"]
@@ -534,7 +534,7 @@ def cmd_serve(args) -> int:
     host = args.host or cfg.web_host
     port = args.port or cfg.web_port
     url = f"http://{host}:{port}"
-    note(f"asst web UI  →  {url}")
+    note(f"inpoint web UI  →  {url}")
     if args.open:
         subprocess.run(["open", url], check=False)
     uvicorn.run(create_app(), host=host, port=port, log_level="warning")
@@ -558,7 +558,7 @@ def cmd_login(args) -> int:
     token = args.token or ""
 
     if interactive:
-        print("Connect asst to Jira\n")
+        print("Connect inpoint to Jira\n")
         print(f"  1. Open {TOKEN_URL}")
         print("  2. Create an API token and copy it")
         print("  3. Paste it below (it won't be echoed)\n")
@@ -571,7 +571,7 @@ def cmd_login(args) -> int:
             token = getpass.getpass("API token: ").strip()
     elif not (email and token):
         note("Not running in a terminal, so I can't prompt. Pass the values instead:\n")
-        note("  asst login --email you@company.com --token <TOKEN> [--site https://x.atlassian.net]\n")
+        note("  inpoint login --email you@company.com --token <TOKEN> [--site https://x.atlassian.net]\n")
         note(f"Create a token at {TOKEN_URL}")
         return 1
 
@@ -604,7 +604,7 @@ def cmd_login(args) -> int:
         f"Saved to {ENV_PATH} (owner-only permissions)",
         "",
         "You can now run everything headlessly:",
-        "  asst jira fetch ABC-123",
+        "  inpoint jira fetch ABC-123",
     ])
     return 0
 
@@ -618,7 +618,7 @@ def cmd_logout(args) -> int:
     write_env({"JIRA_API_TOKEN": ""})
     emit({"ok": True, "env_file": str(ENV_PATH)}, args,
          [f"Token cleared from {ENV_PATH}.",
-          "The browser flow (asst jira open <KEY>) still works."])
+          "The browser flow (inpoint jira open <KEY>) still works."])
     return 0
 
 
@@ -660,13 +660,13 @@ def cmd_doctor(args) -> int:
     from .config import ENV_PATH
 
     check("jira site", bool(cfg.jira_base_url),
-          cfg.jira_base_url or "not set — run: asst login", required=False)
+          cfg.jira_base_url or "not set — run: inpoint login", required=False)
     if jira_api.have_credentials():
         check("jira auth", True, f"API token for {jira_api.credentials()[0]} (headless)",
               required=False)
     else:
         check("jira auth", False,
-              "no token — browser flow only. Run: asst login", required=False)
+              "no token — browser flow only. Run: inpoint login", required=False)
 
     check("asset root", cfg.asset_root.is_dir(), str(cfg.asset_root))
     check("downloads dir", cfg.downloads_dir.is_dir(), str(cfg.downloads_dir))
@@ -691,13 +691,13 @@ def cmd_doctor(args) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     # `--json` is accepted both before and after the subcommand. The per-command
-    # copy uses SUPPRESS so that `asst --json frames ...` isn't clobbered back to
+    # copy uses SUPPRESS so that `inpoint --json frames ...` isn't clobbered back to
     # False when the subparser fills in its defaults.
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--json", action="store_true", default=argparse.SUPPRESS,
                         help="machine-readable output")
 
-    p = argparse.ArgumentParser(prog="asst", description=__doc__,
+    p = argparse.ArgumentParser(prog="inpoint", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--json", action="store_true", help="machine-readable output")
     sub = p.add_subparsers(dest="command", required=True)

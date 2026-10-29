@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>jira-assets</title>
+<title>inpoint</title>
 <meta name="description" content="A Claude Code plugin that pulls a Jira ticket's images and videos into a folder, transcribes the videos locally with Whisper, and grabs frames from any moment on the timeline.">
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -179,12 +179,12 @@ footer a { color: var(--ink); }
 <div class="wrap">
 
 <nav>
-  <a class="brand" href="#"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 19V11a4 4 0 0 1 4-4h8"/><path d="M45 7h8a4 4 0 0 1 4 4v8"/><path d="M57 45v8a4 4 0 0 1-4 4h-8"/><path d="M19 57h-8a4 4 0 0 1-4-4v-8"/></g><path d="M17 46h30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.28"/><path d="M35 19h-9v27" fill="none" stroke="var(--accent)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="26" cy="46" r="4.5" fill="var(--accent)"/></svg>jira-assets</a>
+  <a class="brand" href="#"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 19V11a4 4 0 0 1 4-4h8"/><path d="M45 7h8a4 4 0 0 1 4 4v8"/><path d="M57 45v8a4 4 0 0 1-4 4h-8"/><path d="M19 57h-8a4 4 0 0 1-4-4v-8"/></g><path d="M17 46h30" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.28"/><path d="M35 19h-9v27" fill="none" stroke="var(--accent)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="26" cy="46" r="4.5" fill="var(--accent)"/></svg>inpoint</a>
   <div class="links">
     <a href="#how">How it works</a>
     <a href="#install">Install</a>
     <a href="#commands">Commands</a>
-    <a href="https://github.com/azadhash/asst_tool">GitHub</a>
+    <a href="https://github.com/azadhash/inpoint">GitHub</a>
   </div>
 </nav>
 
@@ -192,10 +192,10 @@ footer a { color: var(--ink); }
   <div class="copy">
     <span class="eyebrow">Claude Code plugin</span>
     <h1>The words and the picture, at the timestamp you care about.</h1>
-    <p class="lede">Someone attaches a two-minute screen recording to a bug ticket. Somewhere in it is the moment the thing breaks. jira-assets pulls the ticket's attachments into a folder, transcribes the videos on your machine, and hands you the frames from any stretch of the timeline, each labelled with what was being said.</p>
+    <p class="lede">Someone attaches a two-minute screen recording to a bug ticket. Somewhere in it is the moment the thing breaks. inpoint pulls the ticket's attachments into a folder, transcribes the videos on your machine, and hands you the frames from any stretch of the timeline, each labelled with what was being said.</p>
     <div class="cta">
       <a class="btn primary" href="#install">Install in Claude Code</a>
-      <a class="btn ghost" href="https://github.com/azadhash/asst_tool">View on GitHub</a>
+      <a class="btn ghost" href="https://github.com/azadhash/inpoint">View on GitHub</a>
     </div>
     <div class="facts">
       <span>Nothing uploaded</span>
@@ -243,19 +243,19 @@ footer a { color: var(--ink); }
       <span class="n">01 · Harvest</span>
       <h3>Download every attachment</h3>
       <p>Images, videos, audio and files land in a per-ticket folder on your Desktop, with a manifest and a readable summary of the ticket.</p>
-      <pre><code>asst jira fetch ISP-482</code></pre>
+      <pre><code>inpoint jira fetch ISP-482</code></pre>
     </div>
     <div class="step">
       <span class="n">02 · Transcribe</span>
       <h3>Whisper, on your machine</h3>
       <p>Word-level timestamps in JSON, SRT, VTT and plain text. Non-English audio also gets an English translation written alongside.</p>
-      <pre><code>asst transcribe ISP-482</code></pre>
+      <pre><code>inpoint transcribe ISP-482</code></pre>
     </div>
     <div class="step">
       <span class="n">03 · Frames</span>
       <h3>Stills from any moment</h3>
       <p>One timestamp, a list, a range every N seconds, or every scene change. With a transcript present, each frame is annotated with what was said.</p>
-      <pre><code>asst frames bug-repro.mp4 \
+      <pre><code>inpoint frames bug-repro.mp4 \
   --range 1:20-1:40 --every 2s --sheet</code></pre>
     </div>
   </div>
@@ -275,7 +275,7 @@ footer a { color: var(--ink); }
     <div class="card">
       <h3>You drive it</h3>
       <p>A local web page for scrubbing by hand. Drop a video, get a transcript, click a line to jump there, mark in and out, extract frames, download the lot as a zip.</p>
-      <pre><code>asst serve --open</code></pre>
+      <pre><code>inpoint serve --open</code></pre>
       <div class="keys"><kbd>i</kbd><kbd>o</kbd><kbd>space</kbd><kbd>←</kbd><kbd>→</kbd><kbd>⟦⟧</kbd></div>
       <p class="muted" style="font-size:0.9rem">Mark in and out, play, step one frame, or snap the range to a transcript line.</p>
     </div>
@@ -287,7 +287,7 @@ footer a { color: var(--ink); }
     <div class="sec-head" style="margin:0">
       <span class="eyebrow">The folder</span>
       <h2>Everything for a ticket in one place.</h2>
-      <p class="muted">Harvests are shared state on disk. A second Claude session, another terminal, or the web UI all see the same library. Run <code>asst library</code> to list every ticket and what has been done to it.</p>
+      <p class="muted">Harvests are shared state on disk. A second Claude session, another terminal, or the web UI all see the same library. Run <code>inpoint library</code> to list every ticket and what has been done to it.</p>
     </div>
     <pre class="tree">~/Desktop/ISP/ISP-482/
 ├── ticket.json            <span class="c">summary, status, attachment manifest</span>
@@ -311,17 +311,16 @@ footer a { color: var(--ink); }
     <div class="sec-head" style="margin:0">
       <span class="eyebrow">Install</span>
       <h2>Two commands in Claude Code.</h2>
-      <p class="muted">The first <code>asst</code> call builds its own virtualenv. Expect a couple of minutes once, then it is instant. Whisper weights, about 1.5 GB, download on your first transcription.</p>
+      <p class="muted">The first <code>inpoint</code> call builds its own virtualenv. Expect a couple of minutes once, then it is instant. Whisper weights, about 1.5 GB, download on your first transcription.</p>
     </div>
     <div style="display:grid;gap:14px">
-      <pre><code>/plugin marketplace add azadhash/asst_tool
-/plugin install jira-assets@asst-tools
+      <pre><code>/plugin install inpoint --marketplace azadhash/inpoint
 /reload-plugins</code></pre>
       <p class="muted" style="font-size:0.9rem">Prerequisites</p>
       <pre><code>brew install uv ffmpeg</code></pre>
       <p class="muted" style="font-size:0.9rem">Connect to Jira with an API token, or skip this and let Claude use your browser.</p>
-      <pre><code>asst login
-asst doctor</code></pre>
+      <pre><code>inpoint login
+inpoint doctor</code></pre>
     </div>
   </div>
   <div class="tbl" style="margin-top:36px">
@@ -359,17 +358,17 @@ asst doctor</code></pre>
     <table>
       <thead><tr><th>Command</th><th>What it does</th></tr></thead>
       <tbody>
-        <tr><td><code>asst jira fetch &lt;KEY&gt;</code></td><td>Read the ticket and download everything, no browser needed</td></tr>
-        <tr><td><code>asst transcribe &lt;file|KEY&gt;</code></td><td>Whisper transcript plus English translation</td></tr>
-        <tr><td><code>asst transcript &lt;file&gt;</code></td><td>Read a transcript back, by range or search term</td></tr>
-        <tr><td><code>asst frames &lt;file&gt;</code></td><td>Extract stills at timestamps, over a range, or at scene changes</td></tr>
-        <tr><td><code>asst library</code></td><td>Every harvested ticket, with transcript and frame status</td></tr>
-        <tr><td><code>asst jira status &lt;KEY&gt;</code></td><td>What has been harvested for one ticket</td></tr>
-        <tr><td><code>asst jira import &lt;KEY&gt; &lt;files…&gt;</code></td><td>File something you saved by hand</td></tr>
-        <tr><td><code>asst probe &lt;file&gt;</code></td><td>Duration, codecs, resolution</td></tr>
-        <tr><td><code>asst serve</code></td><td>The local web UI</td></tr>
-        <tr><td><code>asst doctor</code></td><td>Check ffmpeg, Whisper, paths and Jira auth</td></tr>
-        <tr><td><code>asst login</code> / <code>asst logout</code></td><td>Store or clear a Jira API token</td></tr>
+        <tr><td><code>inpoint jira fetch &lt;KEY&gt;</code></td><td>Read the ticket and download everything, no browser needed</td></tr>
+        <tr><td><code>inpoint transcribe &lt;file|KEY&gt;</code></td><td>Whisper transcript plus English translation</td></tr>
+        <tr><td><code>inpoint transcript &lt;file&gt;</code></td><td>Read a transcript back, by range or search term</td></tr>
+        <tr><td><code>inpoint frames &lt;file&gt;</code></td><td>Extract stills at timestamps, over a range, or at scene changes</td></tr>
+        <tr><td><code>inpoint library</code></td><td>Every harvested ticket, with transcript and frame status</td></tr>
+        <tr><td><code>inpoint jira status &lt;KEY&gt;</code></td><td>What has been harvested for one ticket</td></tr>
+        <tr><td><code>inpoint jira import &lt;KEY&gt; &lt;files…&gt;</code></td><td>File something you saved by hand</td></tr>
+        <tr><td><code>inpoint probe &lt;file&gt;</code></td><td>Duration, codecs, resolution</td></tr>
+        <tr><td><code>inpoint serve</code></td><td>The local web UI</td></tr>
+        <tr><td><code>inpoint doctor</code></td><td>Check ffmpeg, Whisper, paths and Jira auth</td></tr>
+        <tr><td><code>inpoint login</code> / <code>inpoint logout</code></td><td>Store or clear a Jira API token</td></tr>
       </tbody>
     </table>
   </div>
@@ -382,15 +381,15 @@ asst doctor</code></pre>
   </div>
   <ul class="nots">
     <li>Jira Server or Data Center. It speaks Cloud REST v3 only.</li>
-    <li>Media embedded in a description through Atlassian's media service. Those are not real attachments, so save them by hand and use <code>asst jira import</code>.</li>
+    <li>Media embedded in a description through Atlassian's media service. Those are not real attachments, so save them by hand and use <code>inpoint jira import</code>.</li>
     <li>Speaker diarisation. Whisper gives you the words, not who said them.</li>
     <li>Bulk harvesting across a JQL query. It is one ticket at a time.</li>
   </ul>
 </section>
 
 <footer>
-  <span>jira-assets · MIT licensed</span>
-  <span><a href="https://github.com/azadhash/asst_tool">github.com/azadhash/asst_tool</a></span>
+  <span>inpoint · MIT licensed</span>
+  <span><a href="https://github.com/azadhash/inpoint">github.com/azadhash/inpoint</a></span>
 </footer>
 
 </div>

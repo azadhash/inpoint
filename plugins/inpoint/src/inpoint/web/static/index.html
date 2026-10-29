@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>asst — transcribe & frame</title>
+<title>inpoint — transcribe & frame</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Chivo:wght@300;400;500;700&display=swap" rel="stylesheet" />
@@ -514,7 +514,7 @@ async function loadLibrary() {
   try {
     const data = await api("/api/library");
     if (!data.groups.length) {
-      body.innerHTML = `<div class="rail-empty">Nothing here yet.<br /><br />Drop a video on the right, or harvest a Jira ticket with<br /><span class="tc" style="color:var(--amber)">asst jira open ABC-123</span></div>`;
+      body.innerHTML = `<div class="rail-empty">Nothing here yet.<br /><br />Drop a video on the right, or harvest a Jira ticket with<br /><span class="tc" style="color:var(--amber)">inpoint jira open ABC-123</span></div>`;
       return;
     }
     body.innerHTML = data.groups.map((g) => `

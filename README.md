@@ -1,8 +1,8 @@
-# asst-tools
+# inpoint
 
 A Claude Code plugin marketplace. One plugin so far:
 
-**[jira-assets](plugins/jira-assets)** — pull a Jira ticket's images and videos into a
+**[inpoint](plugins/inpoint)** — pull a Jira ticket's images and videos into a
 tidy folder, transcribe the videos locally with Whisper, and grab frames from any
 moment on the timeline. Ask Claude *"grab the assets from ABC-123 and tell me what's
 in the video"* and it does the whole run.
@@ -14,20 +14,19 @@ Nothing is uploaded anywhere. Transcription runs on your own machine.
 ## Install
 
 ```
-/plugin marketplace add azadhash/asst_tool
-/plugin install jira-assets@asst-tools
+/plugin install inpoint --marketplace azadhash/inpoint
 /reload-plugins
 ```
 
 Or straight from a local checkout, no GitHub needed:
 
 ```
-/plugin marketplace add /path/to/asst-tools
-/plugin install jira-assets@asst-tools
+/plugin marketplace add /path/to/inpoint
+/plugin install inpoint@inpoint
 ```
 
-The first `asst` call builds its own virtualenv — expect a couple of minutes once,
-then it's instant. Everything after that is `asst ...`, already on your PATH.
+The first `inpoint` call builds its own virtualenv — expect a couple of minutes once,
+then it's instant. Everything after that is `inpoint ...`, already on your PATH.
 
 ### Prerequisites
 
@@ -41,7 +40,7 @@ CPU Whisper — same output, slower.
 ### Connect to Jira
 
 ```bash
-asst login
+inpoint login
 ```
 
 Prompts for your site, your Atlassian email, and an
@@ -49,9 +48,9 @@ Prompts for your site, your Atlassian email, and an
 before saving to a `.env` that only you can read. After that:
 
 ```bash
-asst jira fetch ABC-123
+inpoint jira fetch ABC-123
 ```
 
 If you'd rather not create a token and you have the Claude in Chrome extension,
-skip `asst login` entirely — Claude will drive your logged-in browser instead.
+skip `inpoint login` entirely — Claude will drive your logged-in browser instead.
 

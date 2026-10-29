@@ -41,11 +41,11 @@ def _load_backend():
     """Pick a Whisper implementation.
 
     MLX (Apple Silicon GPU) is preferred when available, openai-whisper (CPU) is
-    the portable fallback. Set ASST_WHISPER_BACKEND=mlx|openai to force one.
+    the portable fallback. Set INPOINT_WHISPER_BACKEND=mlx|openai to force one.
     """
     import os
 
-    preferred = os.getenv("ASST_WHISPER_BACKEND", "").strip().lower()
+    preferred = os.getenv("INPOINT_WHISPER_BACKEND", "").strip().lower()
 
     if preferred in {"openai", "cpu", "whisper"}:
         try:
@@ -53,7 +53,7 @@ def _load_backend():
             return "openai", whisper
         except ImportError as exc:
             raise TranscribeError(
-                "ASST_WHISPER_BACKEND asked for openai-whisper, but it isn't installed. "
+                "INPOINT_WHISPER_BACKEND asked for openai-whisper, but it isn't installed. "
                 "Install it with:  uv pip install openai-whisper"
             ) from exc
 
@@ -63,7 +63,7 @@ def _load_backend():
             return "mlx", mlx_whisper
         except ImportError as exc:
             raise TranscribeError(
-                "ASST_WHISPER_BACKEND asked for mlx, but mlx-whisper isn't installed. "
+                "INPOINT_WHISPER_BACKEND asked for mlx, but mlx-whisper isn't installed. "
                 "It only supports Apple Silicon."
             ) from exc
 
@@ -280,7 +280,7 @@ def transcribe_media(
     started = time.time()
     backend = _load_backend()
 
-    with tempfile.TemporaryDirectory(prefix="asst-audio-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="inpoint-audio-") as tmp:
         wav = Path(tmp) / "audio.wav"
         report("audio", 0.03, "Extracting 16 kHz mono audio")
         media.extract_audio(src, wav)

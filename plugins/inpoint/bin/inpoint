@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Self-bootstrapping launcher. Claude Code puts this directory on PATH while the
-# plugin is enabled, so `asst ...` just works — including the first time, when the
+# plugin is enabled, so `inpoint ...` just works — including the first time, when the
 # virtualenv doesn't exist yet.
 #
-# The venv lives in ~/.cache/asst rather than inside the plugin, for two reasons:
+# The venv lives in ~/.cache/inpoint rather than inside the plugin, for two reasons:
 # a plugin folder gets copied on install and replaced on update, and a 2.5 GB
 # torch/mlx tree has no business being duplicated either time.
 set -euo pipefail
@@ -11,7 +11,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(dirname "$HERE")"
 
-die() { printf '\033[31masst:\033[0m %s\n' "$*" >&2; exit 1; }
+die() { printf '\033[31minpoint:\033[0m %s\n' "$*" >&2; exit 1; }
 
 command -v uv >/dev/null 2>&1 || die "uv is not installed. Install it with:
        brew install uv
@@ -24,15 +24,15 @@ command -v ffmpeg >/dev/null 2>&1 || die "ffmpeg is not installed. Install it wi
 # never fight over the same editable install.
 KEY="$(printf '%s' "$ROOT" | shasum 2>/dev/null | cut -c1-12)"
 CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
-export UV_PROJECT_ENVIRONMENT="${ASST_VENV:-$CACHE_HOME/asst/venv-$KEY}"
+export UV_PROJECT_ENVIRONMENT="${INPOINT_VENV:-$CACHE_HOME/inpoint/venv-$KEY}"
 
-if [ ! -x "$UV_PROJECT_ENVIRONMENT/bin/asst" ]; then
-  printf '\033[1masst:\033[0m first run — installing dependencies into %s\n' \
+if [ ! -x "$UV_PROJECT_ENVIRONMENT/bin/inpoint" ]; then
+  printf '\033[1minpoint:\033[0m first run — installing dependencies into %s\n' \
     "$UV_PROJECT_ENVIRONMENT" >&2
-  printf '\033[1masst:\033[0m this takes a few minutes once, then never again\n' >&2
+  printf '\033[1minpoint:\033[0m this takes a few minutes once, then never again\n' >&2
   mkdir -p "$(dirname "$UV_PROJECT_ENVIRONMENT")"
   uv sync --project "$ROOT" >&2 || die "dependency install failed"
-  printf '\033[1masst:\033[0m ready\n' >&2
+  printf '\033[1minpoint:\033[0m ready\n' >&2
 fi
 
-exec uv run --quiet --project "$ROOT" asst "$@"
+exec uv run --quiet --project "$ROOT" inpoint "$@"

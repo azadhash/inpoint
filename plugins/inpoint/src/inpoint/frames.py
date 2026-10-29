@@ -224,7 +224,7 @@ def contact_sheet(
     cols = cols or min(n, max(1, int(math.ceil(math.sqrt(n)))))
     rows = int(math.ceil(n / cols))
 
-    with tempfile.TemporaryDirectory(prefix="asst-sheet-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="inpoint-sheet-") as tmp:
         tmp_dir = Path(tmp)
         ext = Path(frames[0]["path"]).suffix or ".jpg"
         for i, frame in enumerate(frames, start=1):
