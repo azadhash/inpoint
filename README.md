@@ -1,4 +1,13 @@
-# inpoint
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo-dark.svg">
+    <img src="docs/logo-light.svg" width="88" alt="Inpoint">
+  </picture>
+</p>
+
+<h1 align="center">inpoint</h1>
+
+<p align="center"><a href="https://inpoint.unibot.in">inpoint.unibot.in</a></p>
 
 A Claude Code plugin marketplace. One plugin so far:
 
