@@ -55,25 +55,3 @@ asst jira fetch ABC-123
 If you'd rather not create a token and you have the Claude in Chrome extension,
 skip `asst login` entirely — Claude will drive your logged-in browser instead.
 
----
-
-## Other ways to share this
-
-| Route | Good for | Cost |
-| --- | --- | --- |
-| **Plugin marketplace** (this repo) | Claude Code users on your team | push to GitHub, they run two commands |
-| `git clone` + `./setup.sh` | people who want the CLI without Claude | no plugin machinery |
-| Private GitHub repo | keeping it internal | same commands; they need repo access |
-| `--plugin-dir` / `--plugin-url` | trying it without installing | `claude --plugin-dir ./plugins/jira-assets` |
-
-To publish to the public Claude community marketplace, run
-`claude plugin validate ./plugins/jira-assets` and submit at
-[platform.claude.com/plugins/submit](https://platform.claude.com/plugins/submit).
-
-## Before you push this anywhere
-
-- `.env` holds your API token and is gitignored — confirm with `git ls-files | grep env`
-  that only `.env.example` is tracked.
-- Anyone you share with sees your Jira site only if they set it themselves; the
-  committed `.env.example` ships a placeholder.
-- A token grants everything your Jira account can do. Share the repo, never the token.
