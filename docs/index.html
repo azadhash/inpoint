@@ -203,7 +203,7 @@ footer a { color: var(--ink); }
     </div>
     <div class="facts">
       <span>Nothing uploaded</span>
-      <span>Whisper, local</span>
+      <span>Apple speech or Whisper, local</span>
       <span>MIT</span>
     </div>
   </div>
@@ -315,7 +315,7 @@ footer a { color: var(--ink); }
     <div class="sec-head" style="margin:0">
       <span class="eyebrow">Install</span>
       <h2>Two commands in Claude Code.</h2>
-      <p class="muted">The first <code>inpoint</code> call builds its own virtualenv. Expect a couple of minutes once, then it is instant. Whisper weights, about 0.9 GB, download on your first transcription. The whole install is around 1.4 GB.</p>
+      <p class="muted">The first <code>inpoint</code> call builds its own virtualenv. Expect a couple of minutes once, then it is instant. On macOS 26 English audio is transcribed by Apple's engine with nothing to download. Whisper weights, about 0.9 GB, download the first time another language needs them.</p>
     </div>
     <div style="display:grid;gap:14px">
       <pre><code>/plugin install inpoint --marketplace azadhash/inpoint
@@ -331,7 +331,8 @@ inpoint doctor</code></pre>
     <table>
       <thead><tr><th>Platform</th><th>Transcription</th><th>Speed</th></tr></thead>
       <tbody>
-        <tr><td>macOS, Apple Silicon</td><td>GPU via MLX</td><td>about 10× real time</td></tr>
+        <tr><td>macOS 26 and later</td><td>Apple's on-device speech engine</td><td>English and 9 other languages, no download, fastest</td></tr>
+        <tr><td>macOS, Apple Silicon</td><td>GPU via MLX</td><td>about 10× real time, used for other languages and translation</td></tr>
         <tr><td>macOS Intel, Linux, Windows</td><td>CPU via openai-whisper</td><td>same output, several × slower</td></tr>
       </tbody>
     </table>

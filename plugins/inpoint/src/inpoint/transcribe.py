@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
-from . import media
+from . import apple_speech, media
 from .media import MediaError, fmt_ts
 
 Progress = Callable[[str, float, str], None]  # stage, 0..1, message
@@ -303,27 +303,52 @@ def transcribe_media(
     duration = info["duration"]
 
     started = time.time()
-    backend = _load_backend()
+    backend: tuple[str, object] | None = None  # Whisper, loaded only when needed
+    backend_name = "whisper"
+    translation_note = None
 
     with tempfile.TemporaryDirectory(prefix="inpoint-audio-") as tmp:
         wav = Path(tmp) / "audio.wav"
         report("audio", 0.03, "Extracting 16 kHz mono audio")
         media.extract_audio(src, wav)
 
-        report("transcribe", 0.05, f"Loading {model}")
-        raw = _run_whisper(
-            backend, wav, model=model, task="transcribe", language=language,
-            duration=duration, progress=progress, stage="transcribe",
-            stage_lo=0.05, stage_hi=0.70 if translate else 0.97,
-        )
+        stage_hi = 0.70 if translate else 0.97
+        raw = None
+        if apple_speech.wanted(language):
+            report("transcribe", 0.05, "Apple speech, on-device")
+            try:
+                raw = apple_speech.transcribe(
+                    wav, language=language, duration=duration, progress=progress,
+                    stage="transcribe", stage_lo=0.05, stage_hi=stage_hi,
+                )
+            except apple_speech.AppleSpeechError as exc:
+                if os.getenv("INPOINT_WHISPER_BACKEND", "").strip().lower() == "apple":
+                    raise TranscribeError(str(exc)) from exc
+                report("transcribe", 0.05, f"Apple speech unavailable ({exc}); using Whisper")
+            else:
+                if apple_speech.looks_sparse(raw, duration):
+                    report("transcribe", 0.05, "Apple speech heard little English; retrying with Whisper")
+                    raw = None
+                else:
+                    backend_name, model = "apple", "apple-speech"
+        if raw is None:
+            backend = _load_backend()
+            backend_name = backend[0]
+            report("transcribe", 0.05, f"Loading {model}")
+            raw = _run_whisper(
+                backend, wav, model=model, task="transcribe", language=language,
+                duration=duration, progress=progress, stage="transcribe",
+                stage_lo=0.05, stage_hi=stage_hi,
+            )
         segments = _clean_segments(raw.get("segments") or [])
         detected = (raw.get("language") or language or "unknown").lower()
 
         translation = None
-        translation_note = None
         if translate and detected not in {"en", "english"} and segments:
-            tr_model = translate_model or model
-            if cannot_translate(tr_model):
+            if backend is None:
+                backend = _load_backend()
+            tr_model = translate_model or (model if backend_name != "apple" else None)
+            if tr_model and cannot_translate(tr_model):
                 fallback = translate_fallback or ""
                 if not fallback or cannot_translate(fallback):
                     translation_note = (
@@ -372,7 +397,7 @@ def transcribe_media(
             "has_video": info["has_video"],
         },
         "model": model,
-        "backend": backend[0],
+        "backend": backend_name,
         "language": detected,
         "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "elapsed_seconds": round(time.time() - started, 1),

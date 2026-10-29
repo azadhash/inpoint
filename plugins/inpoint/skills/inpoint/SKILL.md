@@ -8,7 +8,11 @@ description: Harvest a Jira ticket's attachments (images, videos, files) into a 
 `inpoint` is on your PATH whenever this plugin is enabled — call it directly.
 Add `--json` to every call; the output is meant for you.
 
-Everything runs on this machine. Whisper transcription uses the Apple Silicon GPU;
+Everything runs on this machine. On macOS 26 English audio goes through Apple's
+on-device speech engine (instant, nothing to download); other languages and the
+English translation use Whisper. If the user says the recording is in Hindi or
+another language, pass `--language <code>` so it skips the English engine.
+Whisper transcription uses the Apple Silicon GPU;
 nothing is uploaded to any service.
 
 ## Start here if something was harvested already
@@ -123,7 +127,7 @@ Accepts a ticket key (does every video and audio file on it), a folder, or a sin
 file path. Auto-detects the language and also writes an English translation when the
 source isn't English. Already-transcribed files are reused unless you pass `--force`.
 
-The first run downloads the Whisper model (~0.9 GB) — say so before starting, and
+The first Whisper run (non-English audio, or macOS < 26) downloads the model (~0.9 GB) — say so before starting, and
 expect it to take a few minutes. After that, transcription runs roughly 10× faster
 than real time.
 

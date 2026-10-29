@@ -29,10 +29,14 @@ brew install uv ffmpeg
 
 | Platform | Transcription | Notes |
 | --- | --- | --- |
-| macOS, Apple Silicon | GPU via [MLX](https://github.com/ml-explore/mlx) | ~10× real time |
+| macOS 26+ | Apple's on-device speech engine | English + 9 languages, no download, fastest |
+| macOS, Apple Silicon | GPU via [MLX](https://github.com/ml-explore/mlx) | ~10× real time; used for other languages and translation |
 | macOS Intel · Linux · Windows | CPU via openai-whisper | Same output, several × slower |
 
-The backend is picked automatically; `INPOINT_WHISPER_BACKEND=mlx\|openai` forces one.
+The backend is picked automatically; `INPOINT_WHISPER_BACKEND=apple\|mlx\|openai` forces one.
+Apple's engine needs the Xcode Command Line Tools (`xcode-select --install`) to build
+a tiny helper once. It assumes English unless you pass `--language`; Hindi and other
+unsupported languages go to Whisper automatically.
 Model weights (~0.9 GB) download on your first transcription. The whole install is
 about 1.4 GB on Apple Silicon; CPU platforms add ~0.6 GB for PyTorch.
 
@@ -259,7 +263,7 @@ Add `--json` to any of them for machine-readable output — that's what Claude u
 | `DOWNLOADS_DIR` | `~/Downloads` | where the browser flow looks for downloads |
 | `WHISPER_MODEL` | `whisper-large-v3-turbo-8bit` | transcription weights; `-q4` halves it again |
 | `WHISPER_TRANSLATE_MODEL` | `whisper-large-v3-8bit` | weights for the English pass |
-| `INPOINT_WHISPER_BACKEND` | auto | force `mlx` or `openai` |
+| `INPOINT_WHISPER_BACKEND` | auto | force `apple`, `mlx` or `openai` |
 | `WEB_HOST` / `WEB_PORT` | `127.0.0.1:8765` | web UI bind address |
 
 ## What it doesn't do

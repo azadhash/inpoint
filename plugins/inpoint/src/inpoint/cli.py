@@ -633,6 +633,11 @@ def cmd_doctor(args) -> int:
         path = shutil.which(tool)
         check(tool, bool(path), path or "missing — run: brew install ffmpeg")
 
+    from . import apple_speech
+    reason = apple_speech.unavailable_reason()
+    check("apple speech", not reason,
+          reason or "on-device, no download (English + 9 languages)", required=False)
+
     try:
         import mlx_whisper  # noqa: F401
         check("mlx-whisper", True, "Apple Silicon GPU backend ready")
